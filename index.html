@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VetPredisp — атлас породных предрасположенностей</title>
-<meta name="description" content="Какие болезни чаще встречаются у каких пород собак и кошек: курированный атлас с градацией доказательности (A/B/C) и ссылкой на первоисточник у каждой связи.">
-<meta property="og:title" content="VetPredisp — атлас породных предрасположенностей">
-<meta property="og:description" content="Порода → болезни → сила доказательств → первоисточник. Динамический атлас: поиск, фильтры, обратный индекс «болезнь → породы».">
+<title>Что вшито в породу — атлас предрасположенностей (собаки и кошки)</title>
+<meta name="description" content="Породные предрасположенности простыми словами: лента фактов о том, какие болезни чаще встречаются у каких пород собак и кошек, с градацией доказательности и ссылкой на первоисточник у каждого факта.">
+<meta property="og:title" content="Что вшито в породу — атлас предрасположенностей">
+<meta property="og:description" content="Лента фактов «порода → слабые места» простым языком + честная наука: градация A/B/C и первоисточник у каждой связи. 40 пород, 61 связь, 94 источника.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shray77.github.io/vetpredis-site/">
 <meta name="twitter:card" content="summary">
@@ -18,7 +18,9 @@
 <style>
   /* Ядро — vet-ds (./vet-ds.css) + вендоренные шрифты (./fonts.css).
      Ниже — локальный слой витрины: алиасы и layout, значения токенов
-     ДС не дублируются. Паттерн наследован от vetdigest/vetrecall. */
+     ДС не дублируются. Паттерн наследован от vetdigest/vetrecall.
+     v0.2 «Лента»: подача фактов — «наука в худи»: хук + простой язык +
+     честная научная плашка; аватарки-эмодзи вырезаны принципиально. */
   :root {
     --bg: var(--ds-bg);
     --surface: var(--ds-surface);
@@ -71,13 +73,42 @@
   .ev-chip[data-ev="A"].on { color: var(--ds-green); border-color: var(--ds-border-strong); }
   .ev-chip[data-ev="B"].on { color: var(--ds-amber); border-color: var(--ds-border-strong); }
   .ev-chip[data-ev="C"].on { color: var(--ds-blue); border-color: var(--ds-border-strong); }
+  .shuffle { min-height: 34px; }
+  .shuffle svg { color: var(--accent); }
+  .feedonly { display: none; }
+  .mode-feed .feedonly { display: inline-flex; }
 
   .meta-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 10px 0 4px; }
   .meta-row .count { font: 12.5px var(--mono); color: var(--faint); }
   .legend { font: 12px var(--mono); color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
   .legend b { font-weight: 500; }
 
-  /* карточки пород */
+  /* ЛЕНТА: карточка-факт (одна связь = одна карточка) */
+  .feed { display: flex; flex-direction: column; gap: 14px; margin: 10px 0 4px; max-width: 720px; }
+  .fact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--ds-radius); padding: 16px 18px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .fact-card:hover { border-color: var(--ds-border-strong); }
+  .fact-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .breed-pill { font: 600 12.5px var(--ds-font-sans); color: var(--ds-accent-text); background: var(--accent-dim); border: 1px solid var(--accent-line); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+  .breed-pill:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+  .breed-pill .sp { font: 11px var(--mono); color: var(--faint); margin-left: 6px; font-weight: 400; }
+  .fact-ev { font: 600 11.5px var(--mono); border: 1px solid var(--border); border-radius: 999px; padding: 4px 9px; letter-spacing: .04em; white-space: nowrap; }
+  .fact-ev.ev-A { color: var(--ds-green); }
+  .fact-ev.ev-B { color: var(--ds-amber); }
+  .fact-ev.ev-C { color: var(--ds-blue); }
+  .fact-sys { font: 11px var(--mono); color: var(--faint); border: 1px solid var(--border); border-radius: 999px; padding: 4px 9px; white-space: nowrap; }
+  .fact-hook { font: 400 22px/1.28 var(--ds-font-display); margin: 2px 0 0; letter-spacing: -.005em; }
+  .fact-plain { margin: 0; color: var(--text); font-size: 15px; line-height: 1.6; }
+  .fact-science { margin-top: 4px; border-top: 1px dashed var(--border); padding-top: 9px; display: grid; gap: 5px; font-size: 12.5px; }
+  .fact-science .fs-cap { font: 10.5px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: .12em; }
+  .fact-science .fs-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+  .fact-science .fs-dz { font: 600 13px var(--ds-font-sans); }
+  .fact-science .fs-fact { color: var(--muted); line-height: 1.5; margin: 0; }
+  .fact-science .fs-src { margin: 2px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .fact-science .fs-src a { font-size: 11.5px; color: var(--ds-blue-text); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--ds-blue-text) 30%, transparent); }
+  .fact-science .fs-src a:hover { color: var(--ds-accent-text); border-color: var(--accent-line); }
+  .morebtn { margin: 16px 0 4px; align-self: center; }
+
+  /* АТЛАС: карточки пород */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 10px 0 4px; }
   .dgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; margin: 10px 0 4px; align-items: start; }
   .breed-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--ds-radius); overflow: hidden; display: flex; flex-direction: column; }
@@ -85,10 +116,10 @@
   .breed-card.open { border-color: var(--ds-border-strong); }
   .breed-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font: inherit; color: inherit; }
   .breed-head:hover { background: var(--surface2); }
-  .breed-head .emoji { font-size: 22px; flex: none; }
+  .breed-glyph { width: 34px; height: 34px; flex: none; border-radius: var(--ds-radius); background: var(--accent-dim); border: 1px solid var(--accent-line); display: grid; place-items: center; font: 400 17px/1 var(--ds-font-display); color: var(--ds-accent-text); }
   .breed-head .tt { flex: 1; min-width: 0; }
   .breed-head .nm { font: 600 15.5px/1.3 var(--ds-font-sans); }
-  .breed-head .en { font: 11.5px var(--mono); color: var(--faint); margin-top: 1px; }
+  .breed-head .tg { font: 11.5px/1.3 var(--mono); color: var(--faint); margin-top: 1px; }
   .breed-head .cnt { font: 11.5px var(--mono); color: var(--muted); flex: none; }
   .breed-head .chev { flex: none; color: var(--faint); transition: transform .18s var(--ds-ease); }
   .breed-card.open .chev { transform: rotate(90deg); color: var(--ds-accent-text); }
@@ -100,7 +131,8 @@
   .cond .hd { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .cond .dz { font: 600 14px/1.35 var(--ds-font-sans); flex: 1 1 auto; }
   .cond .sys { font: 11px var(--mono); color: var(--faint); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; flex: none; }
-  .cond .fact { color: var(--muted); font-size: 13.5px; margin: 6px 0 0; line-height: 1.5; }
+  .cond .hookline { font: 400 15px/1.4 var(--ds-font-display); color: var(--text); margin: 6px 0 0; }
+  .cond .fact { color: var(--muted); font-size: 13.5px; margin: 5px 0 0; line-height: 1.5; }
   .cond .src { margin: 8px 0 0; padding: 0; list-style: none; }
   .cond .src li { margin: 3px 0; font-size: 12.5px; }
   .cond .src a { color: var(--ds-blue-text); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--ds-blue-text) 30%, transparent); }
@@ -134,11 +166,12 @@
     h1 { font-size: 20px; }
     .grid { grid-template-columns: 1fr; }
     .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .fact-hook { font-size: 19px; }
   }
   @media print {
-    .controls, .hub, .theme-pill { display: none !important; }
+    .controls, .hub, .theme-pill, .morebtn { display: none !important; }
     .breed-body { display: block !important; }
-    .breed-card { break-inside: avoid; }
+    .breed-card, .fact-card { break-inside: avoid; }
   }
 </style>
 </head>
@@ -159,8 +192,8 @@
     <div class="brand">
       <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="1.8"/><circle cx="11.5" cy="13.5" r="1.8"/><circle cx="16" cy="9" r="1.8"/><circle cx="19" cy="4.8" r="1.8"/><path d="M4 21c1.5-1 2.5-3 4.5-6s3.5-4.5 6-7"/></svg></div>
       <div>
-        <h1>Атлас породных <em>предрасположенностей</em></h1>
-        <p>Какие болезни чаще встречаются у каких пород — с оценкой силы доказательств и ссылкой на первоисточник у каждой связи.</p>
+        <h1>Что <em>вшито</em> в породу</h1>
+        <p>Породные предрасположенности собак и кошек простыми словами — с честной наукой под капотом: у каждого факта своя градация доказательности и ссылка на первоисточник.</p>
       </div>
     </div>
     <button class="ds-btn ds-btn--sm ds-theme-toggle ds-theme-toggle--labeled theme-pill" id="themeToggle" aria-label="Переключить тему" title="Переключить тему">
@@ -174,7 +207,7 @@
 <main class="wrap">
   <section class="stats" id="stats" aria-label="Сводка атласа">
     <div class="stat"><b id="statBreeds">—</b><span>пород в атласе</span></div>
-    <div class="stat"><b id="statLinks">—</b><span>связей порода—болезнь</span></div>
+    <div class="stat"><b id="statLinks">—</b><span>фактов-связей порода—болезнь</span></div>
     <div class="stat"><b id="statSources">—</b><span>первоисточников</span></div>
     <div class="stat"><b id="statEvA">—<small> / — / —</small></b><span>уровни A / B / C</span></div>
   </section>
@@ -182,14 +215,15 @@
   <section class="controls" aria-label="Поиск и фильтры">
     <div class="row">
       <label class="ds-field search">
-        <span class="ds-label">Поиск: порода, болезнь или система</span>
-        <input class="ds-input" id="q" type="search" placeholder="например: такса, кардиомиопатия, MDR1…" autocomplete="off">
+        <span class="ds-label">Поиск: порода, болезнь или факт</span>
+        <input class="ds-input" id="q" type="search" placeholder="например: такса, кардиомиопатия, цинк…" autocomplete="off">
       </label>
       <label class="ds-field">
-        <span class="ds-label">Направление</span>
-        <div class="ds-tabs" role="tablist" aria-label="Направление просмотра">
-          <button class="ds-tab on" id="tabBreed" role="tab" aria-selected="true" type="button">Порода → болезни</button>
-          <button class="ds-tab" id="tabDisease" role="tab" aria-selected="false" type="button">Болезнь → породы</button>
+        <span class="ds-label">Режим</span>
+        <div class="ds-tabs" role="tablist" aria-label="Режим просмотра">
+          <button class="ds-tab on" id="tabFeed" role="tab" aria-selected="true" type="button">🔥 Лента</button>
+          <button class="ds-tab" id="tabBreed" role="tab" aria-selected="false" type="button">📚 Атлас</button>
+          <button class="ds-tab" id="tabDisease" role="tab" aria-selected="false" type="button">🧬 Болезнь → породы</button>
         </div>
       </label>
     </div>
@@ -201,32 +235,41 @@
         <button class="ds-chip" data-sp="cat" type="button" aria-pressed="false">🐈 кошки</button>
       </span>
       <span class="chiprow" role="group" aria-label="Фильтр доказательности">
-        <span class="lbl">доказательства:</span>
+        <span class="lbl">наука уверена:</span>
         <button class="ds-chip ev-chip on" data-ev="all" type="button" aria-pressed="true">любые</button>
-        <button class="ds-chip ev-chip" data-ev="A" type="button" aria-pressed="false">A</button>
-        <button class="ds-chip ev-chip" data-ev="B" type="button" aria-pressed="false">B</button>
-        <button class="ds-chip ev-chip" data-ev="C" type="button" aria-pressed="false">C</button>
+        <button class="ds-chip ev-chip" data-ev="A" type="button" aria-pressed="false">🔥🔥🔥 A</button>
+        <button class="ds-chip ev-chip" data-ev="B" type="button" aria-pressed="false">🔥🔥 B</button>
+        <button class="ds-chip ev-chip" data-ev="C" type="button" aria-pressed="false">🔥 C</button>
       </span>
-      <label class="ds-field" style="margin-left:auto">
+      <label class="ds-field">
         <span class="ds-label">Система</span>
         <select class="ds-select" id="sys"><option value="all">все системы</option></select>
       </label>
+      <label class="ds-field feedonly">
+        <span class="ds-label">Порода</span>
+        <select class="ds-select" id="breedSel"><option value="all">все породы</option></select>
+      </label>
+      <button class="ds-btn ds-btn--ghost shuffle feedonly" id="shuffleBtn" type="button" title="Перемешать ленту">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h4l4 5 4-5h4"/><path d="M3 17h4l4-5"/><path d="M14 4l3 3-3 3"/><path d="M14 14l3 3-3 3"/><path d="M17 7h4"/><path d="M17 17h4"/></svg>
+        <span>перемешать</span>
+      </button>
     </div>
   </section>
 
   <div class="meta-row">
     <span class="count" id="count">—</span>
     <span class="legend">
-      <span><b>A</b> — обзор/эпидемиология/мутация</span>
-      <span><b>B</b> — когорта/клиническое</span>
-      <span><b>C</b> — кейс-серия/экспертное</span>
+      <span><b>🔥🔥🔥 A</b> — наука прям уверена</span>
+      <span><b>🔥🔥 B</b> — похоже на правду</span>
+      <span><b>🔥 C</b> — кейсы, данных мало</span>
     </span>
   </div>
 
-  <div id="results" class="grid" aria-live="polite"></div>
+  <div id="results" class="feed" aria-live="polite"></div>
+  <button class="ds-btn ds-btn--ghost morebtn" id="moreBtn" type="button" hidden>ещё факты ↓</button>
 
   <div class="ds-note ds-note--info note-evidence">
-    <b>Как читать уровни.</b> Градация описывает <b>силу научного доказательства</b> связи «порода — болезнь», а не тяжесть болезни и не судьбу конкретного животного: предрасположенность ≠ диагноз. У каждой связи — ссылка на первоисточник: открывайте его перед любыми решениями.
+    <b>Как читать уровни.</b> 🔥 — это <b>сила научного доказательства</b> связи «порода — болезнь», а не тяжесть болезни и не судьба конкретного животного: предрасположенность ≠ диагноз. A — обзоры/эпидемиология/мутация, B — когорты и клинические работы, C — кейс-серии и экспертные перечисления. У каждой связи — ссылка на первоисточник: открывайте его перед любыми решениями.
   </div>
   <div class="ds-note disclaimer">
     <b>Дисклеймер.</b> Информационный справочник, не ветеринарная консультация: решения о здоровье животного принимает только ветеринарный врач, осмотревший пациента. Атлас курирован вручную по открытым публикациям; ошибки и пропуски возможны — полные условия на <a class="ds-link" href="./terms.html">странице условий</a>.
@@ -236,7 +279,7 @@
 <footer>
   <div class="wrap foot">
     <span class="legal">информационный сервис · не ветеринарный совет</span>
-    <span>данные: <a href="./data.js">data.js</a> (курированный seed)</span>
+    <span>данные: <a href="./data.js">data.js</a> (курированный набор)</span>
     <a href="./terms.html">условия и дисклеймер</a>
     <a href="https://github.com/shray77/vetpredis-site">репозиторий</a>
     <span>обновлено: <span id="updated">—</span></span>

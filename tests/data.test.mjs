@@ -1,6 +1,8 @@
 /* tests/data.test.mjs — node --test: data.js парсится и проходит схему.
    Конвенция статических витрин экосистемы (ср. biobarrier/vetfecrt):
-   данные — часть контракта, гейтится тестом без сборки. */
+   данные — часть контракта, гейтится тестом без сборки.
+   v0.2 «Лента»: каждая связь несёт hook (заголовок-хук) и plain
+   (простыми словами) — проверяем их наличие и длины. */
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -20,15 +22,17 @@ function loadAtlas() {
 test("data.js парсится как JSON", () => {
   const atlas = loadAtlas();
   assert.equal(typeof atlas.updated, "string");
-  assert.ok(Array.isArray(atlas.breeds) && atlas.breeds.length >= 20);
+  assert.ok(Array.isArray(atlas.breeds) && atlas.breeds.length >= 38);
 });
 
-test("каждая порода: обязательные поля, корректный вид", () => {
+test("каждая порода: поля, вид, теглайн", () => {
   const { breeds } = loadAtlas();
   for (const b of breeds) {
     assert.ok(b.id && b.name && b.name_en, `порода ${JSON.stringify(b.name)} без id/имён`);
     assert.ok(["dog", "cat"].includes(b.species), `порода ${b.id}: species=${b.species}`);
     assert.ok(Array.isArray(b.aliases) && b.aliases.length > 0, `порода ${b.id}: нет алиасов`);
+    assert.ok(typeof b.tagline === "string" && b.tagline.trim().length > 0 && b.tagline.length <= 64,
+      `порода ${b.id}: tagline пуст/длинный`);
     assert.ok(Array.isArray(b.conditions) && b.conditions.length > 0, `порода ${b.id}: conditions пуст`);
   }
 });
@@ -39,12 +43,16 @@ test("id пород уникальны", () => {
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test("каждая связь: система, уровень A/B/C, факт и источники с https-URL", () => {
+test("каждая связь: хук, простой язык, наука и источники", () => {
   const { breeds } = loadAtlas();
   for (const b of breeds) {
     for (const c of b.conditions) {
       assert.ok(c.disease && c.system, `связь у ${b.id}: нет disease/system`);
       assert.ok(["A", "B", "C"].includes(c.evidence), `связь у ${b.id}: evidence=${c.evidence}`);
+      assert.ok(c.hook && c.hook.trim().length > 0 && c.hook.length <= 90,
+        `связь у ${b.id}: hook пуст/длинный`);
+      assert.ok(c.plain && c.plain.trim().length >= 40,
+        `связь у ${b.id}: plain короче 40 символов`);
       assert.ok(c.key_fact && c.key_fact.trim().length > 0, `связь у ${b.id}: key_fact пуст`);
       assert.ok(Array.isArray(c.sources) && c.sources.length > 0, `связь у ${b.id}: нет источников`);
       for (const s of c.sources) {
@@ -55,22 +63,24 @@ test("каждая связь: система, уровень A/B/C, факт и
   }
 });
 
-test("и собаки, и кошки покрыты; сводка уровней осмысленная", () => {
+test("охват: собаки и кошки, все уровни, связей хватает", () => {
   const { breeds } = loadAtlas();
   const dogs = breeds.filter((b) => b.species === "dog");
   const cats = breeds.filter((b) => b.species === "cat");
-  assert.ok(dogs.length >= 12, `собак меньше 12: ${dogs.length}`);
-  assert.ok(cats.length >= 4, `кошек меньше 4: ${cats.length}`);
-  const evs = breeds.flatMap((b) => b.conditions.map((c) => c.evidence));
+  assert.ok(dogs.length >= 26, `собак меньше 26: ${dogs.length}`);
+  assert.ok(cats.length >= 11, `кошек меньше 11: ${cats.length}`);
+  const links = breeds.flatMap((b) => b.conditions);
+  assert.ok(links.length >= 58, `связей меньше 58: ${links.length}`);
+  const evs = links.map((c) => c.evidence);
   assert.ok(evs.includes("A") && evs.includes("B") && evs.includes("C"),
     "должны присутствовать все три уровня доказательности");
 });
 
-test("нет плейсхолдеров и мусора в данных", () => {
+test("нет плейсхолдеров, мусора и CJK-артефактов", () => {
   const { breeds } = loadAtlas();
-  const bad = /TODO|XXX|\?\?\?|待补充|undefined|NaN/;
+  const bad = /TODO|XXX|\?\?\?|待补充|undefined|NaN|[\u4e00-\u9fff]/;
   for (const b of breeds) {
     const blob = JSON.stringify(b);
-    assert.ok(!bad.test(blob), `порода ${b.id}: мусор в данных (${blob.match(bad)})`);
+    assert.ok(!bad.test(blob), `порода ${b.id}: мусор/CJK в данных (${blob.match(bad)})`);
   }
 });

@@ -6,9 +6,11 @@
   - обязательные поля на каждом уровне, типы;
   - species ∈ {dog, cat}; evidence ∈ {A, B, C};
   - уникальность id пород и алиасов (нижний регистр);
-  - источники: непустой label и валидный https-URL; уникальность URL в связи;
-  - у каждой связи ≥ 1 источник; key_fact непустой (уровень C допускает
-    отсутствие чисел, но не пустоту);
+  - источники: непустой label и валидный http(s)-URL; уникальность URL в связи;
+  - у каждой связи ≥ 1 источник; hook/plain/key_fact непустые;
+  - v0.2 «Лента»: hook ≤ 90 симв., plain ≥ 40 симв., tagline ≤ 64 симв.;
+  - анти-мусор: CJK-иероглифы и плейсхолдеры в тексте — ошибка (грабли
+    генерации уже ловились этим гейтом в Task 231/232);
   - счётчики сводки (породы/связи/источники) печатаются в stdout.
 
 Выход: 0 — OK, 1 — нарушения (списком на stderr). Запускается вручную и в CI:
@@ -28,6 +30,8 @@ DATA = ROOT / "data.js"
 EV_LEVELS = {"A", "B", "C"}
 SPECIES = {"dog", "cat"}
 URL_RE = re.compile(r"^https?://[^\s\"']+$")
+CJK_RE = re.compile(r"[\u4e00-\u9fff]")
+JUNK_RE = re.compile(r"TODO|XXX|\?\?\?|待补充|undefined|NaN")
 
 
 def load_atlas() -> dict:
@@ -59,9 +63,11 @@ def main() -> int:
 
     for i, b in enumerate(breeds):
         pref = f"breeds[{i}] ({b.get('id', '?')})"
-        for field in ("id", "species", "name", "name_en", "conditions"):
+        for field in ("id", "species", "name", "name_en", "tagline", "conditions"):
             if field not in b or b[field] in (None, ""):
                 errors.append(f"{pref}: пустое/отсутствует поле {field!r}")
+        if len(str(b.get("tagline", ""))) > 64:
+            errors.append(f"{pref}: tagline длиннее 64 символов")
         if b.get("species") not in SPECIES:
             errors.append(f"{pref}: species={b.get('species')!r} ∉ dog|cat")
         if b.get("id") in ids:
@@ -80,15 +86,26 @@ def main() -> int:
             continue
         for j, c in enumerate(conds):
             cpref = f"{pref}.conditions[{j}]"
-            for field in ("disease", "system", "evidence", "sources"):
+            for field in ("disease", "system", "evidence", "hook", "plain", "key_fact", "sources"):
                 if field not in c or c[field] in (None, ""):
                     errors.append(f"{cpref}: пустое/отсутствует поле {field!r}")
+            hook = str(c.get("hook", ""))
+            plain = str(c.get("plain", ""))
+            if len(hook) > 90:
+                errors.append(f"{cpref}: hook длиннее 90 символов ({len(hook)})")
+            if len(plain) < 40:
+                errors.append(f"{cpref}: plain короче 40 символов — суть не раскрыта")
             if c.get("evidence") not in EV_LEVELS:
                 errors.append(f"{cpref}: evidence={c.get('evidence')!r} ∉ A|B|C")
             else:
                 ev_count[c["evidence"]] += 1
             if not str(c.get("key_fact", "")).strip():
                 errors.append(f"{cpref}: key_fact пуст (нужен контекст связи)")
+            blob = json.dumps(c, ensure_ascii=False) + " " + json.dumps(b, ensure_ascii=False)
+            if CJK_RE.search(blob):
+                errors.append(f"{cpref}: CJK-иероглифы в тексте (артефакт генерации)")
+            if JUNK_RE.search(blob):
+                errors.append(f"{cpref}: плейсхолдеры/мусор в тексте")
             n_links += 1
 
             srcs = c.get("sources")
