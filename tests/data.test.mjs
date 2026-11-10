@@ -22,7 +22,7 @@ function loadAtlas() {
 test("data.js парсится как JSON", () => {
   const atlas = loadAtlas();
   assert.equal(typeof atlas.updated, "string");
-  assert.ok(Array.isArray(atlas.breeds) && atlas.breeds.length >= 38);
+  assert.ok(Array.isArray(atlas.breeds) && atlas.breeds.length >= 56);
 });
 
 test("каждая порода: поля, вид, теглайн", () => {
@@ -67,10 +67,10 @@ test("охват: собаки и кошки, все уровни, связей 
   const { breeds } = loadAtlas();
   const dogs = breeds.filter((b) => b.species === "dog");
   const cats = breeds.filter((b) => b.species === "cat");
-  assert.ok(dogs.length >= 26, `собак меньше 26: ${dogs.length}`);
-  assert.ok(cats.length >= 11, `кошек меньше 11: ${cats.length}`);
+  assert.ok(dogs.length >= 38, `собак меньше 38: ${dogs.length}`);
+  assert.ok(cats.length >= 17, `кошек меньше 17: ${cats.length}`);
   const links = breeds.flatMap((b) => b.conditions);
-  assert.ok(links.length >= 58, `связей меньше 58: ${links.length}`);
+  assert.ok(links.length >= 85, `связей меньше 85: ${links.length}`);
   const evs = links.map((c) => c.evidence);
   assert.ok(evs.includes("A") && evs.includes("B") && evs.includes("C"),
     "должны присутствовать все три уровня доказательности");
