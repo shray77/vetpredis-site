@@ -95,6 +95,9 @@
   .fact-ev.ev-A { color: var(--ds-green); }
   .fact-ev.ev-B { color: var(--ds-amber); }
   .fact-ev.ev-C { color: var(--ds-blue); }
+  .legend .ev-A { color: var(--ds-green); }
+  .legend .ev-B { color: var(--ds-amber); }
+  .legend .ev-C { color: var(--ds-blue); }
   .fact-sys { font: 11px var(--mono); color: var(--faint); border: 1px solid var(--border); border-radius: 999px; padding: 4px 9px; white-space: nowrap; }
   .fact-hook { font: 400 22px/1.28 var(--ds-font-display); margin: 2px 0 0; letter-spacing: -.005em; }
   .fact-plain { margin: 0; color: var(--text); font-size: 15px; line-height: 1.6; }
@@ -222,7 +225,7 @@
       <label class="ds-field">
         <span class="ds-label">Режим</span>
         <div class="ds-tabs" role="tablist" aria-label="Режим просмотра">
-          <button class="ds-tab on" id="tabFeed" role="tab" aria-selected="true" type="button">🔥 Лента</button>
+          <button class="ds-tab on" id="tabFeed" role="tab" aria-selected="true" type="button">Лента</button>
           <button class="ds-tab" id="tabBreed" role="tab" aria-selected="false" type="button">📚 Атлас</button>
           <button class="ds-tab" id="tabDisease" role="tab" aria-selected="false" type="button">🧬 Болезнь → породы</button>
         </div>
@@ -238,9 +241,9 @@
       <span class="chiprow" role="group" aria-label="Фильтр доказательности">
         <span class="lbl">наука уверена:</span>
         <button class="ds-chip ev-chip on" data-ev="all" type="button" aria-pressed="true">любые</button>
-        <button class="ds-chip ev-chip" data-ev="A" type="button" aria-pressed="false">🔥🔥🔥 A</button>
-        <button class="ds-chip ev-chip" data-ev="B" type="button" aria-pressed="false">🔥🔥 B</button>
-        <button class="ds-chip ev-chip" data-ev="C" type="button" aria-pressed="false">🔥 C</button>
+        <button class="ds-chip ev-chip" data-ev="A" type="button" aria-pressed="false">A</button>
+        <button class="ds-chip ev-chip" data-ev="B" type="button" aria-pressed="false">B</button>
+        <button class="ds-chip ev-chip" data-ev="C" type="button" aria-pressed="false">C</button>
       </span>
       <label class="ds-field">
         <span class="ds-label">Система</span>
@@ -260,9 +263,9 @@
   <div class="meta-row">
     <span class="count" id="count">—</span>
     <span class="legend">
-      <span><b>🔥🔥🔥 A</b> — наука прям уверена</span>
-      <span><b>🔥🔥 B</b> — похоже на правду</span>
-      <span><b>🔥 C</b> — кейсы, данных мало</span>
+      <span><b class="ev-A">A</b> — наука прям уверена</span>
+      <span><b class="ev-B">B</b> — похоже на правду</span>
+      <span><b class="ev-C">C</b> — кейсы, данных мало</span>
     </span>
   </div>
 
@@ -270,7 +273,7 @@
   <button class="ds-btn ds-btn--ghost morebtn" id="moreBtn" type="button" hidden>ещё факты ↓</button>
 
   <div class="ds-note ds-note--info note-evidence">
-    <b>Как читать уровни.</b> 🔥 — это <b>сила научного доказательства</b> связи «порода — болезнь», а не тяжесть болезни и не судьба конкретного животного: предрасположенность ≠ диагноз. A — обзоры/эпидемиология/мутация, B — когорты и клинические работы, C — кейс-серии и экспертные перечисления. У каждой связи — ссылка на первоисточник: открывайте его перед любыми решениями.
+    <b>Как читать уровни.</b> Буква A, B или C — это <b>сила научного доказательства</b> связи «порода — болезнь», а не тяжесть болезни и не судьба конкретного животного: предрасположенность ≠ диагноз. A — обзоры/эпидемиология/мутация, B — когорты и клинические работы, C — кейс-серии и экспертные перечисления. У каждой связи — ссылка на первоисточник: открывайте его перед любыми решениями.
   </div>
   <div class="ds-note disclaimer">
     <b>Дисклеймер.</b> Информационный справочник, не ветеринарная консультация: решения о здоровье животного принимает только ветеринарный врач, осмотревший пациента. Атлас курирован вручную по открытым публикациям; ошибки и пропуски возможны — полные условия на <a class="ds-link" href="./terms.html">странице условий</a>.

@@ -53,7 +53,6 @@
     return many;
   }
   var EV_CLS = { A: "green", B: "amber", C: "blue" };
-  var EV_FIRE = { A: "🔥🔥🔥", B: "🔥🔥", C: "🔥" };
   var EV_TITLE = {
     A: "Уровень A: наука прям уверена — систематический обзор / мета-анализ / крупная эпидемиология / установленная мутация",
     B: "Уровень B: похоже на правду — когортное или клиническое исследование, несколько независимых работ",
@@ -62,8 +61,8 @@
   function evBadge(ev) {
     return '<span class="ds-badge ds-badge--' + EV_CLS[ev] + '" title="' + esc(EV_TITLE[ev]) + '">' + ev + "</span>";
   }
-  function evFire(ev) {
-    return '<span class="fact-ev ev-' + ev + '" title="' + esc(EV_TITLE[ev]) + '">' + EV_FIRE[ev] + " · " + ev + "</span>";
+  function evLevel(ev) {
+    return '<span class="fact-ev ev-' + ev + '" title="' + esc(EV_TITLE[ev]) + '">ур. ' + ev + "</span>";
   }
 
   /* ---------- плоский список всех связей ---------- */
@@ -136,7 +135,7 @@
       + '<div class="fact-meta">'
       + '<button class="breed-pill" type="button" data-breed-link="' + esc(b.id) + '">'
       + esc(b.name) + '<span class="sp">' + (b.species === "cat" ? "кошка" : "собака") + "</span></button>"
-      + evFire(c.evidence)
+      + evLevel(c.evidence)
       + '<span class="fact-sys">' + esc(c.system) + "</span>"
       + "</div>"
       + '<h3 class="fact-hook">' + esc(c.hook || c.disease) + "</h3>"
